@@ -7,6 +7,7 @@ from controllers.selenium_automation import SeleniumHandler
 from controllers.tratamento_da_planilha import tratar_planilha
 from controllers.ajuste_contingencial import ajustar_contingencial
 from controllers.inclui_dados_na_base import incluir_dados_na_base
+from controllers.consolidar_planilhas import consolidar_planilhas # Adicionado
 
 from views.page_one import PageOne
 from views.page_two import PageTwo
@@ -16,35 +17,37 @@ class AtenaCommanderApp:
 
         self.root = root
         self.root.title("Coordenação de Controladoria - GCO")
-        self.root.geometry("700x670")
+        self.root.geometry("650x670")
 
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=0)
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_rowconfigure(2, weight=0)
+        self.root.grid_rowconfigure(3, weight=0) # Adicionado para acomodar status_label
 
         self.selenium_handler = SeleniumHandler()
-        self.tratamento_file_path = ""
+        self.tratamento_file_paths = [] # Alterado para lista
+        self.additional_file_paths = [] # Adicionado
         self.planilha_path = ""
         self.base_path = ""
         self.tratada_path = ""
 
         self.main_title_label = tk.Label(root, text="Automação de Relatórios e Bases",
-                                         font=("Arial", 14, "bold"), fg="#1A2F4B")
+                                         font=("Arial", 8, "bold"), fg="#1A2F4B")
         self.main_title_label.grid(row=0, column=0, pady=20, sticky="nsew")
 
         self.container = ttk.Frame(root)
-        self.container.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
+        self.container.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
         self.loading_label = tk.Label(root, text="Aguarde enquanto a operação é processada...\nNão feche o programa até a conclusão.",
-                                      font=("Arial", 10, "italic"), fg="blue", wraplength=700, justify="center")
+                                      font=("Arial", 8, "italic"), fg="blue", wraplength=700, justify="center")
         self.loading_label.grid(row=2, column=0, sticky="nsew", padx=20, pady=5)
         self.loading_label.grid_forget()
 
-        self.status_label = tk.Label(root, text="", font=("Arial", 10), fg="green")
-        self.status_label.grid(row=3, column=0, sticky="nsew", padx=20, pady=5)
+        self.status_label = tk.Label(root, text="", font=("Arial", 8), fg="green")
+        self.status_label.grid(row=3, column=0, sticky="nsew", padx=20, pady=5) # row alterada para 3
 
         self.frames = {}
         for F in (PageOne, PageTwo):
@@ -61,6 +64,14 @@ class AtenaCommanderApp:
         frame.tkraise()
         self.loading_label.grid_forget()
         self.status_label.config(text="")
+
+        # Se for para a PageTwo, atualize o label de planilha tratada
+        if page_name == "PageTwo":
+            if self.tratada_path and hasattr(self.frames["PageTwo"], 'tratada_path_label'):
+                file_name = self.tratada_path.split('/')[-1] if '/' in self.tratada_path else self.tratada_path.split('\\')[-1]
+                self.frames["PageTwo"].tratada_path_label.config(text=f"Planilha tratada: {file_name}")
+            else:
+                self.frames["PageTwo"].tratada_path_label.config(text="Nenhuma planilha tratada selecionada")
 
     def set_loading_state(self, is_loading: bool, message: str = ""):
 

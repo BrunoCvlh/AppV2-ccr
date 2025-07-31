@@ -6,7 +6,9 @@ import calendar
 
 from controllers.selenium_automation import SeleniumHandler
 from controllers.tratamento_da_planilha import tratar_planilha
-from controllers.consolidar_planilhas import consolidar_planilhas
+from controllers.ajuste_contingencial import ajustar_contingencial
+
+from .tooltip import Tooltip
 
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
@@ -19,7 +21,9 @@ class PageOne(tk.Frame):
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=0)
+        self.grid_rowconfigure(4, weight=0) 
 
+        # 1º Passo: Acesso e Download de Relatório
         self.access_frame = ttk.LabelFrame(self, text=" 1º Passo: Acesso e Download de Relatório ", padding=(10, 10))
         self.access_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.access_frame.grid_columnconfigure(0, weight=0)
@@ -27,29 +31,39 @@ class PageOne(tk.Frame):
         self.access_frame.grid_columnconfigure(2, weight=0)
         self.access_frame.grid_columnconfigure(3, weight=1)
 
-        tk.Label(self.access_frame, text="Email:", font=("Arial", 10)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        # Adicionar o botão de interrogação e o tooltip para o 1º Passo
+        info_button_step1 = tk.Label(self.access_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
+        info_button_step1.grid(row=0, column=4, sticky="w", padx=2, pady=5)
+        Tooltip(info_button_step1, "Neste passo, o sistema realizará o login automático na plataforma, "
+                                   "navegará até a área de relatórios e fará o download da 'Análise Comparativa'" \
+                                   "dos três planos (PGA, BD e PP) para "
+                                   "a competência especificada (Mês/Ano).")
+
+
+        tk.Label(self.access_frame, text="Email:", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.email_entry = tk.Entry(self.access_frame, font=("Arial", 10), bd=2, relief="groove")
         self.email_entry.grid(row=0, column=1, columnspan=3, sticky="ew", padx=5, pady=5)
 
-        tk.Label(self.access_frame, text="Senha:", font=("Arial", 10)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.password_entry = tk.Entry(self.access_frame, font=("Arial", 10), show="*", bd=2, relief="groove")
+        tk.Label(self.access_frame, text="Senha:", font=("Arial", 8)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.password_entry = tk.Entry(self.access_frame, font=("Arial", 8), show="*", bd=2, relief="groove")
         self.password_entry.grid(row=1, column=1, columnspan=3, sticky="ew", padx=5, pady=5)
 
-        tk.Label(self.access_frame, text="Competência (MM/YYYY):", font=("Arial", 10)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.competencia_mes_entry = tk.Entry(self.access_frame, font=("Arial", 10), width=3, bd=2, relief="groove", justify="center")
+        tk.Label(self.access_frame, text="Competência (MM/YYYY):", font=("Arial", 8)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.competencia_mes_entry = tk.Entry(self.access_frame, font=("Arial", 8), width=3, bd=2, relief="groove", justify="center")
         self.competencia_mes_entry.grid(row=2, column=1, sticky="e", padx=(5, 2), pady=5)
         self.competencia_mes_entry.config(validate="key", validatecommand=(self.controller.root.register(lambda P: len(P) <= 2 and (P.isdigit() or P == "")), "%P"))
 
-        tk.Label(self.access_frame, text="/", font=("Arial", 10, "bold")).grid(row=2, column=2, sticky="w", pady=5)
+        tk.Label(self.access_frame, text="/", font=("Arial", 8, "bold")).grid(row=2, column=2, sticky="w", pady=5)
 
-        self.competencia_ano_entry = tk.Entry(self.access_frame, font=("Arial", 10), width=5, bd=2, relief="groove", justify="center")
+        self.competencia_ano_entry = tk.Entry(self.access_frame, font=("Arial", 8), width=5, bd=2, relief="groove", justify="center")
         self.competencia_ano_entry.grid(row=2, column=3, sticky="w", padx=(2, 5), pady=5)
         self.competencia_ano_entry.config(validate="key", validatecommand=(self.controller.root.register(lambda P: len(P) <= 4 and (P.isdigit() or P == "")), "%P"))
 
         self.extract_report_button = tk.Button(self.access_frame, text="Extrair Relatório de Análise Comparativa", command=self.start_login_thread,
-                                                font=("Arial", 10, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
+                                                font=("Arial", 8, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
         self.extract_report_button.grid(row=3, column=0, columnspan=4, sticky="", padx=5, pady=10)
 
+        # 2º Passo: Tratamento do Arquivo
         self.treatment_frame = ttk.LabelFrame(self, text=" 2º Passo: Tratamento do Arquivo ", padding=(10, 10))
         self.treatment_frame.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.treatment_frame.grid_columnconfigure(0, weight=0)
@@ -57,56 +71,78 @@ class PageOne(tk.Frame):
         self.treatment_frame.grid_columnconfigure(2, weight=0)
         self.treatment_frame.grid_columnconfigure(3, weight=1)
 
-        tk.Label(self.treatment_frame, text="Competência (MM/YYYY):", font=("Arial", 10)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.tratamento_competencia_mes_entry = tk.Entry(self.treatment_frame, font=("Arial", 10), width=3, bd=2, relief="groove", justify="center")
+        # Adicionar o botão de interrogação e o tooltip para o 2º Passo
+        info_button_step2 = tk.Label(self.treatment_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
+        info_button_step2.grid(row=0, column=4, sticky="w", padx=2, pady=5)
+        Tooltip(info_button_step2, "Aqui você anexa a(s) planilha(s) para tratamento. "
+                                   "e adicionará a coluna 'Competência' "
+                                   "(com o primeiro dia do mês) e 'Balancete'.")
+
+
+        tk.Label(self.treatment_frame, text="Competência (MM/YYYY):", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.tratamento_competencia_mes_entry = tk.Entry(self.treatment_frame, font=("Arial", 8), width=3, bd=2, relief="groove", justify="center")
         self.tratamento_competencia_mes_entry.grid(row=0, column=1, sticky="e", padx=(5, 2), pady=5)
         self.tratamento_competencia_mes_entry.config(validate="key", validatecommand=(self.controller.root.register(lambda P: len(P) <= 2 and (P.isdigit() or P == "")), "%P"))
-        tk.Label(self.treatment_frame, text="/", font=("Arial", 10, "bold")).grid(row=0, column=2, sticky="w", pady=5)
-        self.tratamento_competencia_ano_entry = tk.Entry(self.treatment_frame, font=("Arial", 10), width=5, bd=2, relief="groove", justify="center")
+        tk.Label(self.treatment_frame, text="/", font=("Arial", 8, "bold")).grid(row=0, column=2, sticky="w", pady=5)
+        self.tratamento_competencia_ano_entry = tk.Entry(self.treatment_frame, font=("Arial", 8), width=5, bd=2, relief="groove", justify="center")
         self.tratamento_competencia_ano_entry.grid(row=0, column=3, sticky="w", padx=(2, 5), pady=5)
         self.tratamento_competencia_ano_entry.config(validate="key", validatecommand=(self.controller.root.register(lambda P: len(P) <= 4 and (P.isdigit() or P == "")), "%P"))
 
-        tk.Label(self.treatment_frame, text="Nome do Balancete:", font=("Arial", 10)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.nome_balancete_entry = tk.Entry(self.treatment_frame, font=("Arial", 10), bd=2, relief="groove")
+        tk.Label(self.treatment_frame, text="Nome do Balancete:", font=("Arial", 8)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.nome_balancete_entry = tk.Entry(self.treatment_frame, font=("Arial", 8), bd=2, relief="groove")
         self.nome_balancete_entry.grid(row=1, column=1, columnspan=3, sticky="ew", padx=5, pady=5)
 
-        tk.Label(self.treatment_frame, text="Anexar Arquivo(s) para Tratamento:", font=("Arial", 10)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.tratamento_file_path_label = tk.Label(self.treatment_frame, text="Nenhum arquivo selecionado", font=("Arial", 10), fg="gray")
+        tk.Label(self.treatment_frame, text="Anexar Arquivo(s) para Tratamento:", font=("Arial", 8)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.tratamento_file_path_label = tk.Label(self.treatment_frame, text="Nenhum arquivo selecionado", font=("Arial", 8), fg="gray")
         self.tratamento_file_path_label.grid(row=2, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
         self.tratamento_file_button = tk.Button(self.treatment_frame, text="Selecionar Arquivo(s)", command=self.select_tratamento_file,
-                                                 font=("Arial", 10), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
+                                                 font=("Arial", 8), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
         self.tratamento_file_button.grid(row=2, column=3, sticky="ew", padx=5, pady=5)
 
         self.tratamento_button = tk.Button(self.treatment_frame, text="Tratar Arquivo(s)", command=self.tratar_arquivo,
-                                            font=("Arial", 10, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
+                                            font=("Arial", 8, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
         self.tratamento_button.grid(row=3, column=0, columnspan=4, sticky="", padx=5, pady=10)
 
-        self.additional_files_frame = ttk.LabelFrame(self, text=" 3º Passo: Consolidar planilhas ", padding=(10, 10))
-        self.additional_files_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
-        self.additional_files_frame.grid_columnconfigure(0, weight=0)
-        self.additional_files_frame.grid_columnconfigure(1, weight=1)
-        self.additional_files_frame.grid_columnconfigure(2, weight=0)
-        self.additional_files_frame.grid_columnconfigure(3, weight=1)
+        # 3º Passo: Ajustar Valor Contingencial
+        self.contingency_frame = ttk.LabelFrame(self, text=" 3º Passo: Ajustar Valor Contingencial ", padding=(10, 10))
+        self.contingency_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
+        self.contingency_frame.grid_columnconfigure(0, weight=0)
+        self.contingency_frame.grid_columnconfigure(1, weight=1)
+        self.contingency_frame.grid_columnconfigure(2, weight=1)
+        self.contingency_frame.grid_columnconfigure(3, weight=1)
 
-        tk.Label(self.additional_files_frame, text="Anexar até 3 Planilhas:", font=("Arial", 10)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.additional_files_path_label = tk.Label(self.additional_files_frame, text="Nenhum arquivo selecionado", font=("Arial", 10), fg="gray")
-        self.additional_files_path_label.grid(row=0, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
-        self.additional_files_button = tk.Button(self.additional_files_frame, text="Selecionar Arquivo(s)", command=self.select_additional_files,
-                                                 font=("Arial", 10), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
-        self.additional_files_button.grid(row=0, column=3, sticky="ew", padx=5, pady=5)
+        # Adicionar o botão de interrogação e o tooltip para o 3º Passo
+        info_button_step3 = tk.Label(self.contingency_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
+        info_button_step3.grid(row=0, column=4, sticky="w", padx=2, pady=5)
+        Tooltip(info_button_step3, "Selecione somente a planilha do PGA para "
+                                   "ajustar o valor da conta 'Contingencial'. "
+                                   "Será necessário informar o novo valor que deseja aplicar " \
+                                   "a esta conta.") 
 
-        self.consolidar_button = tk.Button(self.additional_files_frame, text="Consolidar Dados", command=self.consolidar_dados,
-                                           font=("Arial", 10, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
-        self.consolidar_button.grid(row=1, column=0, columnspan=4, sticky="", padx=5, pady=10)
+
+        tk.Label(self.contingency_frame, text="Anexar Planilha para Ajuste:", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.planilha_path_label = tk.Label(self.contingency_frame, text="Nenhum arquivo selecionado", font=("Arial", 8), fg="gray")
+        self.planilha_path_label.grid(row=0, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
+        self.planilha_button = tk.Button(self.contingency_frame, text="Selecionar Arquivo", command=self.select_planilha,
+                                         font=("Arial", 8), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
+        self.planilha_button.grid(row=0, column=3, sticky="ew", padx=5, pady=5)
+
+        tk.Label(self.contingency_frame, text="Novo Valor Contingencial:", font=("Arial", 8)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.contingencia_entry = tk.Entry(self.contingency_frame, font=("Arial", 8), bd=2, relief="groove")
+        self.contingencia_entry.grid(row=1, column=1, columnspan=3, sticky="ew", padx=5, pady=5)
+
+        self.adjust_contingency_button = tk.Button(self.contingency_frame, text="Ajustar Valor Contingencial na Planilha", command=self.ajustar_valor_contingencial,
+                                                   font=("Arial", 8, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
+        self.adjust_contingency_button.grid(row=2, column=0, columnspan=4, sticky="", padx=5, pady=8)
 
 
         self.navigation_frame = tk.Frame(self)
-        self.navigation_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        self.navigation_frame.grid(row=3, column=0, columnspan=2, pady=8) 
 
         self.next_button = tk.Button(self.navigation_frame, text="Próximo >>",
                                       command=lambda: self.controller.show_frame("PageTwo"),
-                                      font=("Arial", 10, "bold"), bg="#4CAF50", fg="white", relief="raised", bd=2, cursor="hand2", width=15)
-        self.next_button.pack(side="right", padx=10)
+                                      font=("Arial", 8, "bold"), bg="#4CAF50", fg="white", relief="raised", bd=2, cursor="hand2", width=15)
+        self.next_button.pack(side="right", padx=8)
 
     def select_tratamento_file(self):
         file_paths = filedialog.askopenfilenames(
@@ -120,29 +156,23 @@ class PageOne(tk.Frame):
             self.controller.tratamento_file_paths = []
             self.tratamento_file_path_label.config(text="Nenhum arquivo selecionado")
 
-    def select_additional_files(self):
-        file_paths = filedialog.askopenfilenames(
+    def select_planilha(self):
+        file_path = filedialog.askopenfilename(
             filetypes=[("Arquivos Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")]
         )
-        if file_paths:
-            if len(file_paths) > 3:
-                messagebox.showwarning("Limite de Arquivos", "Você pode selecionar no máximo 3 planilhas.")
-                self.controller.additional_file_paths = file_paths[:3]
-                self.additional_files_path_label.config(text=f"3 arquivo(s) selecionado(s) (limite excedido, 3 primeiros)")
-            else:
-                self.controller.additional_file_paths = file_paths
-                num_files = len(file_paths)
-                self.additional_files_path_label.config(text=f"{num_files} arquivo(s) selecionado(s)")
+        if file_path:
+            self.controller.planilha_path = file_path
+            self.planilha_path_label.config(text=f"Arquivo selecionado: {file_path.split('/')[-1] if '/' in file_path else file_path.split('\\')[-1]}")
         else:
-            self.controller.additional_file_paths = []
-            self.additional_files_path_label.config(text="Nenhum arquivo selecionado")
+            self.controller.planilha_path = ""
+            self.planilha_path_label.config(text="Nenhum arquivo selecionado")
 
     def _set_buttons_state(self, state: str):
         self.extract_report_button.config(state=state)
         self.tratamento_button.config(state=state)
         self.tratamento_file_button.config(state=state)
-        self.additional_files_button.config(state=state)
-        self.consolidar_button.config(state=state)
+        self.adjust_contingency_button.config(state=state) 
+        self.planilha_button.config(state=state) 
         self.next_button.config(state=state)
 
     def start_login_thread(self):
@@ -230,50 +260,40 @@ class PageOne(tk.Frame):
             
             if arquivos_tratados:
                 self.controller.tratada_path = arquivos_tratados[-1] 
-                if "PageTwo" in self.controller.frames and hasattr(self.controller.frames["PageTwo"], 'tratada_path_label'):
-                    self.controller.frames["PageTwo"].tratada_path_label.config(text=f"Última planilha tratada: {self.controller.tratada_path.split('/')[-1] if '/' in self.controller.tratada_path else self.controller.tratada_path.split('\\')[-1]}")
 
         if not erros_encontrados and not arquivos_tratados:
             messagebox.showwarning("Aviso", "Nenhum arquivo foi selecionado ou tratado.")
             self.controller.set_status_message("Nenhum arquivo selecionado para tratamento.", "orange")
 
-    def consolidar_dados(self):
-        """
-        Método a ser chamado quando o botão 'Consolidar Dados' for clicado.
-        A lógica de consolidação será implementada aqui.
-        """
+    def ajustar_valor_contingencial(self):
         self.controller.set_status_message("")
-        if not hasattr(self.controller, 'additional_file_paths') or not self.controller.additional_file_paths:
-            messagebox.showwarning("Aviso", "Nenhum arquivo selecionado para consolidação. Por favor, selecione até 3 planilhas no 3º passo.")
-            self.controller.set_status_message("Nenhum arquivo selecionado para consolidação.", "orange")
+        if not self.controller.planilha_path:
+            messagebox.showerror("Erro", "Selecione a planilha antes de ajustar o valor contingencial.")
+            return
+        novo_valor = self.contingencia_entry.get()
+        if not novo_valor:
+            messagebox.showerror("Erro", "Preencha o valor contingencial.")
             return
 
-        arquivos_para_consolidar = self.controller.additional_file_paths
-
-        self.controller.set_loading_state(True, "Consolidando as planilhas...")
+        self.controller.set_loading_state(True, "Ajustando valor contingencial...")
         self._set_buttons_state(tk.DISABLED)
 
-        consolidation_thread = threading.Thread(target=self._consolidar_dados_in_thread, args=(arquivos_para_consolidar,))
-        consolidation_thread.start()
+        adjust_thread = threading.Thread(target=self._ajustar_valor_contingencial_in_thread, args=(novo_valor,))
+        adjust_thread.start()
 
-    def _consolidar_dados_in_thread(self, arquivos_para_consolidar: list):
+    def _ajustar_valor_contingencial_in_thread(self, novo_valor: str):
         try:
-            output_file_name = "planilha_consolidada.xlsx"
-            # Define o caminho de saída no mesmo diretório dos arquivos de entrada ou em um local específico.
-            # Aqui, para simplificar, usaremos o diretório de trabalho atual.
-            consolidated_path = consolidar_planilhas(arquivos_para_consolidar, output_file_name)
-
+            resultado = ajustar_contingencial(self.controller.planilha_path, novo_valor)
             self.controller.set_loading_state(False)
-            self._set_buttons_state(tk.NORMAL)
-
-            if consolidated_path.startswith("ERRO:"):
-                messagebox.showerror("Erro de Consolidação", consolidated_path)
-                self.controller.set_status_message("Erro na consolidação das planilhas.", "red")
+            if resultado is True:
+                messagebox.showinfo("Contingencial", "Valor contingencial ajustado com sucesso!")
+                self.controller.set_status_message("Valor contingencial ajustado!", "green")
             else:
-                messagebox.showinfo("Consolidação Concluída", f"Planilhas consolidadas com sucesso em: {consolidated_path}")
-                self.controller.set_status_message(f"Planilhas consolidadas em: {consolidated_path}", "green")
+                messagebox.showerror("Erro", f"Erro ao ajustar valor contingencial:\n{resultado}")
+                self.controller.set_status_message("Erro ao ajustar valor contingencial.", "red")
         except Exception as e:
             self.controller.set_loading_state(False)
+            messagebox.showerror("Erro", f"Ocorreu um erro inesperado ao ajustar valor contingencial: {e}")
+            self.controller.set_status_message(f"Erro inesperado no ajuste: {e}", "red")
+        finally:
             self._set_buttons_state(tk.NORMAL)
-            messagebox.showerror("Erro Inesperado", f"Ocorreu um erro inesperado durante a consolidação: {e}")
-            self.controller.set_status_message(f"Erro inesperado na consolidação: {e}", "red")

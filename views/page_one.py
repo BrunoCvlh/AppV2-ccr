@@ -6,6 +6,7 @@ import calendar
 
 from controllers.selenium_automation import SeleniumHandler
 from controllers.tratamento_da_planilha import tratar_planilha
+from controllers.consolidar_planilhas import consolidar_planilhas
 
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
@@ -16,7 +17,8 @@ class PageOne(tk.Frame):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=0)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=0)
 
         self.access_frame = ttk.LabelFrame(self, text=" 1º Passo: Acesso e Download de Relatório ", padding=(10, 10))
         self.access_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
@@ -64,19 +66,42 @@ class PageOne(tk.Frame):
         self.tratamento_competencia_ano_entry.grid(row=0, column=3, sticky="w", padx=(2, 5), pady=5)
         self.tratamento_competencia_ano_entry.config(validate="key", validatecommand=(self.controller.root.register(lambda P: len(P) <= 4 and (P.isdigit() or P == "")), "%P"))
 
-        tk.Label(self.treatment_frame, text="Anexar Arquivo(s) para Tratamento:", font=("Arial", 10)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        tk.Label(self.treatment_frame, text="Nome do Balancete:", font=("Arial", 10)).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.nome_balancete_entry = tk.Entry(self.treatment_frame, font=("Arial", 10), bd=2, relief="groove")
+        self.nome_balancete_entry.grid(row=1, column=1, columnspan=3, sticky="ew", padx=5, pady=5)
+
+        tk.Label(self.treatment_frame, text="Anexar Arquivo(s) para Tratamento:", font=("Arial", 10)).grid(row=2, column=0, sticky="w", padx=5, pady=5)
         self.tratamento_file_path_label = tk.Label(self.treatment_frame, text="Nenhum arquivo selecionado", font=("Arial", 10), fg="gray")
-        self.tratamento_file_path_label.grid(row=1, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
+        self.tratamento_file_path_label.grid(row=2, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
         self.tratamento_file_button = tk.Button(self.treatment_frame, text="Selecionar Arquivo(s)", command=self.select_tratamento_file,
                                                  font=("Arial", 10), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
-        self.tratamento_file_button.grid(row=1, column=3, sticky="ew", padx=5, pady=5)
+        self.tratamento_file_button.grid(row=2, column=3, sticky="ew", padx=5, pady=5)
 
         self.tratamento_button = tk.Button(self.treatment_frame, text="Tratar Arquivo(s)", command=self.tratar_arquivo,
                                             font=("Arial", 10, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
-        self.tratamento_button.grid(row=2, column=0, columnspan=4, sticky="", padx=5, pady=10)
+        self.tratamento_button.grid(row=3, column=0, columnspan=4, sticky="", padx=5, pady=10)
+
+        self.additional_files_frame = ttk.LabelFrame(self, text=" 3º Passo: Consolidar planilhas ", padding=(10, 10))
+        self.additional_files_frame.grid(row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
+        self.additional_files_frame.grid_columnconfigure(0, weight=0)
+        self.additional_files_frame.grid_columnconfigure(1, weight=1)
+        self.additional_files_frame.grid_columnconfigure(2, weight=0)
+        self.additional_files_frame.grid_columnconfigure(3, weight=1)
+
+        tk.Label(self.additional_files_frame, text="Anexar até 3 Planilhas:", font=("Arial", 10)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.additional_files_path_label = tk.Label(self.additional_files_frame, text="Nenhum arquivo selecionado", font=("Arial", 10), fg="gray")
+        self.additional_files_path_label.grid(row=0, column=1, columnspan=2, sticky="ew", padx=5, pady=5)
+        self.additional_files_button = tk.Button(self.additional_files_frame, text="Selecionar Arquivo(s)", command=self.select_additional_files,
+                                                 font=("Arial", 10), bg="#D3D3D3", fg="black", relief="raised", bd=2, width=20)
+        self.additional_files_button.grid(row=0, column=3, sticky="ew", padx=5, pady=5)
+
+        self.consolidar_button = tk.Button(self.additional_files_frame, text="Consolidar Dados", command=self.consolidar_dados,
+                                           font=("Arial", 10, "bold"), bg="#004662", fg="white", relief="raised", bd=2, cursor="hand2", width=40)
+        self.consolidar_button.grid(row=1, column=0, columnspan=4, sticky="", padx=5, pady=10)
+
 
         self.navigation_frame = tk.Frame(self)
-        self.navigation_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        self.navigation_frame.grid(row=3, column=0, columnspan=2, pady=10)
 
         self.next_button = tk.Button(self.navigation_frame, text="Próximo >>",
                                       command=lambda: self.controller.show_frame("PageTwo"),
@@ -85,7 +110,7 @@ class PageOne(tk.Frame):
 
     def select_tratamento_file(self):
         file_paths = filedialog.askopenfilenames(
-            filetypes=[("Todos os arquivos", "*.*")]
+            filetypes=[("Arquivos Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")]
         )
         if file_paths:
             self.controller.tratamento_file_paths = file_paths
@@ -95,10 +120,29 @@ class PageOne(tk.Frame):
             self.controller.tratamento_file_paths = []
             self.tratamento_file_path_label.config(text="Nenhum arquivo selecionado")
 
+    def select_additional_files(self):
+        file_paths = filedialog.askopenfilenames(
+            filetypes=[("Arquivos Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")]
+        )
+        if file_paths:
+            if len(file_paths) > 3:
+                messagebox.showwarning("Limite de Arquivos", "Você pode selecionar no máximo 3 planilhas.")
+                self.controller.additional_file_paths = file_paths[:3]
+                self.additional_files_path_label.config(text=f"3 arquivo(s) selecionado(s) (limite excedido, 3 primeiros)")
+            else:
+                self.controller.additional_file_paths = file_paths
+                num_files = len(file_paths)
+                self.additional_files_path_label.config(text=f"{num_files} arquivo(s) selecionado(s)")
+        else:
+            self.controller.additional_file_paths = []
+            self.additional_files_path_label.config(text="Nenhum arquivo selecionado")
+
     def _set_buttons_state(self, state: str):
         self.extract_report_button.config(state=state)
         self.tratamento_button.config(state=state)
         self.tratamento_file_button.config(state=state)
+        self.additional_files_button.config(state=state)
+        self.consolidar_button.config(state=state)
         self.next_button.config(state=state)
 
     def start_login_thread(self):
@@ -144,9 +188,10 @@ class PageOne(tk.Frame):
 
         mes = self.tratamento_competencia_mes_entry.get()
         ano = self.tratamento_competencia_ano_entry.get()
+        nome_balancete = self.nome_balancete_entry.get()
 
-        if not all([mes, ano]):
-            messagebox.showerror("Erro de Validação", "Preencha a competência (Mês/Ano) para o tratamento do arquivo.")
+        if not all([mes, ano, nome_balancete]):
+            messagebox.showerror("Erro de Validação", "Preencha a competência (Mês/Ano) e o nome do Balancete para o tratamento do arquivo.")
             return
 
         competencia = f"{mes}/{ano}"
@@ -154,15 +199,15 @@ class PageOne(tk.Frame):
         self.controller.set_loading_state(True, "Tratando o(s) arquivo(s)...")
         self._set_buttons_state(tk.DISABLED)
 
-        treatment_thread = threading.Thread(target=self._tratar_arquivo_in_thread, args=(competencia, self.controller.tratamento_file_paths))
+        treatment_thread = threading.Thread(target=self._tratar_arquivo_in_thread, args=(competencia, nome_balancete, self.controller.tratamento_file_paths))
         treatment_thread.start()
 
-    def _tratar_arquivo_in_thread(self, competencia: str, file_paths: list):
+    def _tratar_arquivo_in_thread(self, competencia: str, nome_balancete: str, file_paths: list):
         erros_encontrados = []
         arquivos_tratados = []
         for file_path in file_paths:
             try:
-                tratado_path = tratar_planilha(file_path, competencia)
+                tratado_path = tratar_planilha(file_path, competencia, nome_balancete)
                 if tratado_path.startswith("ERRO:"):
                     erros_encontrados.append(f"Arquivo '{file_path.split('/')[-1]}': {tratado_path}")
                 else:
@@ -191,3 +236,44 @@ class PageOne(tk.Frame):
         if not erros_encontrados and not arquivos_tratados:
             messagebox.showwarning("Aviso", "Nenhum arquivo foi selecionado ou tratado.")
             self.controller.set_status_message("Nenhum arquivo selecionado para tratamento.", "orange")
+
+    def consolidar_dados(self):
+        """
+        Método a ser chamado quando o botão 'Consolidar Dados' for clicado.
+        A lógica de consolidação será implementada aqui.
+        """
+        self.controller.set_status_message("")
+        if not hasattr(self.controller, 'additional_file_paths') or not self.controller.additional_file_paths:
+            messagebox.showwarning("Aviso", "Nenhum arquivo selecionado para consolidação. Por favor, selecione até 3 planilhas no 3º passo.")
+            self.controller.set_status_message("Nenhum arquivo selecionado para consolidação.", "orange")
+            return
+
+        arquivos_para_consolidar = self.controller.additional_file_paths
+
+        self.controller.set_loading_state(True, "Consolidando as planilhas...")
+        self._set_buttons_state(tk.DISABLED)
+
+        consolidation_thread = threading.Thread(target=self._consolidar_dados_in_thread, args=(arquivos_para_consolidar,))
+        consolidation_thread.start()
+
+    def _consolidar_dados_in_thread(self, arquivos_para_consolidar: list):
+        try:
+            output_file_name = "planilha_consolidada.xlsx"
+            # Define o caminho de saída no mesmo diretório dos arquivos de entrada ou em um local específico.
+            # Aqui, para simplificar, usaremos o diretório de trabalho atual.
+            consolidated_path = consolidar_planilhas(arquivos_para_consolidar, output_file_name)
+
+            self.controller.set_loading_state(False)
+            self._set_buttons_state(tk.NORMAL)
+
+            if consolidated_path.startswith("ERRO:"):
+                messagebox.showerror("Erro de Consolidação", consolidated_path)
+                self.controller.set_status_message("Erro na consolidação das planilhas.", "red")
+            else:
+                messagebox.showinfo("Consolidação Concluída", f"Planilhas consolidadas com sucesso em: {consolidated_path}")
+                self.controller.set_status_message(f"Planilhas consolidadas em: {consolidated_path}", "green")
+        except Exception as e:
+            self.controller.set_loading_state(False)
+            self._set_buttons_state(tk.NORMAL)
+            messagebox.showerror("Erro Inesperado", f"Ocorreu um erro inesperado durante a consolidação: {e}")
+            self.controller.set_status_message(f"Erro inesperado na consolidação: {e}", "red")

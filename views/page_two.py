@@ -21,7 +21,7 @@ class PageTwo(tk.Frame):
         self.grid_rowconfigure(2, weight=0)
 
         # 3º Passo: Consolidar planilhas
-        self.additional_files_frame = ttk.LabelFrame(self, text=" 3º Passo: Consolidar planilhas ", padding=(10, 10))
+        self.additional_files_frame = ttk.LabelFrame(self, text=" 4º Passo: Consolidar planilhas ", padding=(10, 10))
         self.additional_files_frame.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.additional_files_frame.grid_columnconfigure(0, weight=0)
         self.additional_files_frame.grid_columnconfigure(1, weight=1)
@@ -31,7 +31,7 @@ class PageTwo(tk.Frame):
         # Adicionar o botão de interrogação e o tooltip para o 3º Passo
         info_button_step3 = tk.Label(self.additional_files_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
         info_button_step3.grid(row=0, column=4, sticky="w", padx=2, pady=5)
-        Tooltip(info_button_step3, "Selecione as 3 planilhas que serão consolidadas em um único arquivo.")
+        Tooltip(info_button_step3, "Selecione as 3 planilhas que serão consolidadas em um único arquivo. Segurar Ctrl e selecionar os 3 arquivos tratados.")
 
         tk.Label(self.additional_files_frame, text="Anexar até 3 Planilhas:", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.additional_files_path_label = tk.Label(self.additional_files_frame, text="Nenhum arquivo selecionado", font=("Arial", 8), fg="gray")
@@ -46,7 +46,7 @@ class PageTwo(tk.Frame):
 
 
         # 4º Passo: Enviar Dados para a Base
-        self.send_data_frame = ttk.LabelFrame(self, text=" 4º Passo: Enviar Dados para a Base ", padding=(10, 10))
+        self.send_data_frame = ttk.LabelFrame(self, text=" 5º Passo: Enviar Dados para a Base ", padding=(10, 10))
         self.send_data_frame.grid(row=1, column=0, columnspan=2, padx=5, pady=6, sticky="nsew")
         self.send_data_frame.grid_columnconfigure(0, weight=0)
         self.send_data_frame.grid_columnconfigure(1, weight=1)
@@ -56,9 +56,9 @@ class PageTwo(tk.Frame):
         # Adicionar o botão de interrogação e o tooltip para o 4º Passo
         info_button_step4 = tk.Label(self.send_data_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
         info_button_step4.grid(row=0, column=4, sticky="w", padx=2, pady=5)
-        Tooltip(info_button_step4, "Neste passo final, você enviará os dados da planilha tratada "
+        Tooltip(info_button_step4, "Neste passo, você enviará os dados da planilha consolidada e tratada "
                                    "para a base de dados central. Certifique-se de que a base e a planilha "
-                                   "estejam corretas antes de prosseguir.")
+                                   "estejam corretas antes de prosseguir. Local da base: FS_GCO_CCR - Documentos/2025/03 - Relatórios/3 - Relatório Gerencial da Gerência de Controladoria/Total - 2025/Base Geral - 2025")
 
 
         tk.Label(self.send_data_frame, text="Caminho da Base de Dados:", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)

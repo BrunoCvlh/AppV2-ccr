@@ -74,9 +74,8 @@ class PageOne(tk.Frame):
         # Adicionar o botão de interrogação e o tooltip para o 2º Passo
         info_button_step2 = tk.Label(self.treatment_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
         info_button_step2.grid(row=0, column=4, sticky="w", padx=2, pady=5)
-        Tooltip(info_button_step2, "Aqui você anexa a(s) planilha(s) para tratamento. "
-                                   "e adicionará a coluna 'Competência' "
-                                   "(com o primeiro dia do mês) e 'Balancete'.")
+        Tooltip(info_button_step2, "Aqui você anexa as planilhas (uma de cada vez) para tratamento. "
+                                   "Inclui a competência e o nome do balancete. (Usar PGA, PP ou BD). ")
 
 
         tk.Label(self.treatment_frame, text="Competência (MM/YYYY):", font=("Arial", 8)).grid(row=0, column=0, sticky="w", padx=5, pady=5)
@@ -114,7 +113,7 @@ class PageOne(tk.Frame):
         # Adicionar o botão de interrogação e o tooltip para o 3º Passo
         info_button_step3 = tk.Label(self.contingency_frame, text="?", font=("Arial", 8, "bold"), fg="blue", cursor="hand2")
         info_button_step3.grid(row=0, column=4, sticky="w", padx=2, pady=5)
-        Tooltip(info_button_step3, "Selecione somente a planilha do PGA para "
+        Tooltip(info_button_step3, "Selecione somente a planilha do PGA tratada para "
                                    "ajustar o valor da conta 'Contingencial'. "
                                    "Será necessário informar o novo valor que deseja aplicar " \
                                    "a esta conta.") 

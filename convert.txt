@@ -1,1 +1,3 @@
-pyinstaller --onefile --windowed codigo_final.py
+Código para Build do aplicativo:
+
+pyinstaller main_app.py --onefile --add-data "views;views" --add-data "controllers;controllers" --noconsole

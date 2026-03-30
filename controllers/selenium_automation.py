@@ -51,9 +51,13 @@ class SeleniumHandler:
             self.wait.until(EC.presence_of_element_located((By.ID, "MainContent_MainContent_dbData"))).send_keys(f"{mes}{ano}")
             time.sleep(10)
 
-            dropdown_versao = self.wait.until(EC.presence_of_element_located((By.ID, "MainContent_MainContent_ddlVersao")))
+            dropdown_versao = self.wait.until(
+                EC.presence_of_element_located((By.ID, "MainContent_MainContent_ddlVersao")))
             select = Select(dropdown_versao)
-            select.select_by_visible_text("Exercício: 2025; Versão: 1; Orçamento 2025")
+
+            texto_versao = f"Exercício: {ano}; Versão: 1; Orçamento {ano}"
+            select.select_by_visible_text(texto_versao)
+
             time.sleep(15)
 
             itens_dropdown = ["96-PLANO DE GESTÃO ADMINISTRATIVA", "1-BENEFICIO DEFINIDO", "3-POSTALPREV"]
